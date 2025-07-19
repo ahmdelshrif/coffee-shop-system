@@ -14,19 +14,19 @@ const Product=require("./model/products.model")
 const cron = require("node-cron");
 const ReportMonth=require("./model/report.model.month")
 const routerReportMonth=require("./router/report.month")
-dbconnection()
-const app=express()
 
+//connection
+dbconnection()
+
+const app=express()
 app.use(express.json())
 
-
-
-app.use("/api/v2/auth",routerauth)
-app.use("/api/v2/user",routeruer)
+//router
 app.use("/api/v2/category",routercategory)
 app.use("/api/v2/products",routerproducts)
+app.use("/api/v2/auth",routerauth)
+app.use("/api/v2/user",routeruer)
 app.use("/api/v2/order",routerorder)
-
 app.use("/api/v2/reports",routerreport)
 app.use("/api/v2/reportmonthly",routerReportMonth)
   
@@ -35,11 +35,11 @@ app.use(globalEorrs)
 
 
 const PORT = process.env.PORT || 9000;
-
 const server = app.listen(PORT, () => {
   console.log(`App running running on port ${PORT}`);
   
 })
+
 cron.schedule('0 0 * * *', async () => {
   try {
     console.log(" جاري حفظ التقرير الشهري وتصفير البيانات...");
@@ -83,6 +83,7 @@ cron.schedule('0 0 * * *', async () => {
     console.error(" خطأ في العملية:", err.message);
   }
 })
+
 process.on('unhandledRejection', (err) => {
     console.error(`UnhandledRejection Errors: ${err.name} | ${err.message}`);
     server.close(() => {

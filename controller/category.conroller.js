@@ -28,7 +28,7 @@ req.body.image = filename;
 });
 
 
-
+// انشاء category
 exports.creatCategory=(synchandler(async(req,res,next)=>{
     catgory=await categories.create({
         name:req.body.name,

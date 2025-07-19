@@ -1,18 +1,27 @@
 const express=require("express")
 const router=express.Router()
 
-const {Creatproduct,getAllproducts ,uploadproductsImages,resizeImage,
-    getOneproduct,updateproduct,deleteproduct
+const {creatProduct,getProducts 
+      ,uploadproductsImages,resizeImage,
+      getSpecifiedProduct,updateProduct,deleteProduct
 }=require("../controller/products.controll")
+
 const {protect,allowTO}=require("../controller/auth.coontroll")
-const {creatproductsErrors,updateOnproductsErrors
-    ,getproductvalidatorErrors,DeleteOneproductyErrors}=require("../utils/valdetor/productsvalidetor")
+const {creatproduct_catchError,updateproduct_catchError
+      ,Specifiedproduct_catchError
+      ,deleteproduct_catchError}
+      =require("../utils/valdetor/productsvalidetor")
 
-router.route("/").post(protect,allowTO("manager","admin"),uploadproductsImages,resizeImage,creatproductsErrors,Creatproduct)
-.get(getAllproducts)
+router.route("/").post(protect,allowTO("manager","admin")
+ ,uploadproductsImages,resizeImage,creatproduct_catchError
+ ,creatProduct)
+.get(getProducts)
 
-router.route("/:id").get(getproductvalidatorErrors,getOneproduct).put(protect,allowTO("manager","admin"),uploadproductsImages
-,resizeImage,updateOnproductsErrors,updateproduct)
-.delete(protect,allowTO("manager","admin"),DeleteOneproductyErrors,deleteproduct)
+router.route("/:id").get(Specifiedproduct_catchError,getSpecifiedProduct)
+
+.put(protect,allowTO("manager","admin"),uploadproductsImages
+,resizeImage,updateproduct_catchError,updateProduct)
+
+.delete(protect,allowTO("manager","admin"),deleteproduct_catchError,deleteProduct)
 
 module.exports=router
