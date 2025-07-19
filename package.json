@@ -1,0 +1,26 @@
+{
+  "name": "proj_cofe_shop",
+  "version": "1.0.0",
+  "description": "A simple proj for cofe_shop",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "async": "^3.2.6",
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.2",
+    "dotenv": "^17.1.0",
+    "express": "^5.1.0",
+    "express-async-handler": "^1.2.0",
+    "express-validator": "^7.2.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.16.2",
+    "multer": "^2.0.1",
+    "node-cron": "^4.2.1",
+    "sharp": "^0.34.2",
+    "uuid": "^11.1.0"
+  }
+}
