@@ -1,39 +1,33 @@
 # Coffee Shop Management System
-
 ## What?
-Coffee Shop Management System هو نظام إدارة كافيتيريا كامل مبني باستخدام Node.js, Express, وMongoDB. يتيح إدارة الأصناف، المنتجات، الطلبات، المستخدمين، وتقارير الأرباح والمصروفات بشكل آمن وسهل.
-
+#### The Coffee Shop Management System is a complete cafeteria management application built using Node.js, Express, and MongoDB. It enables secure and efficient management of categories, products, orders, users, and financial reports (profits and expenses).
 
 ## Why?
-تم تطوير هذا المشروع لتبسيط عملية إدارة الكافيتيريا، وتحسين كفاءة العمل من خلال:
+#### This project was developed to simplify cafeteria operations and enhance workflow efficiency by:
 
-تقليل الأخطاء اليدوية في الطلبات.
+#### Reducing manual errors in order processing.
 
-تسهيل إدارة المخزون والمنتجات.
+#### Simplifying inventory and product management.
 
-توفير تقارير دقيقة للإيرادات والمصروفات.
+#### Providing accurate reports for revenue and expenses.
 
-دعم الصلاحيات المتعددة للمستخدمين (مدير، كاشير، إلخ).
+#### Supporting multiple user roles (Manager, Cashier, etc.) for better control.
 
 ## How?
-التقنيات المستخدمة: Node.js, Express.js, MongoDB, JWT, Multer, Sharp.
+#### Technologies Used:
+#### Backend: Node.js, Express.js
 
-الخصائص الأساسية:
+#### Database: MongoDB
 
-إدارة المستخدمين مع نظام صلاحيات.
+#### Authentication: JWT
 
-إدارة الأصناف والمنتجات مع رفع الصور.
+#### Image Handling: Multer & Sharp
 
-إنشاء وتحديث الطلبات مع حساب الإجمالي تلقائيًا.
+## Key Features:
+#### User management with role-based access control.
 
-تقارير الأرباح والمصروفات يوميًا وشهريًا.
+#### Category and product management with image upload.
 
-التشغيل:
+#### Order creation and update with automatic total calculation.
 
-حمل المشروع.
-
-ثبّت التبعيات: npm install.
-
-أضف الإعدادات في ملف .env.
-
-شغل السيرفر: npm start.
+#### Daily and monthly financial reports (profits, revenue, and expenses).
