@@ -1,6 +1,6 @@
  const synchandler=require("express-async-handler")
  const Users=require("../model/Users.model")
-const {createToken}=require("../middelweres/createtoken")
+ const {createToken}=require("../middelweres/createtoken")
  const dotenv=require("dotenv")
  dotenv.config({path:"conf.env"})
  const ApiErorr=require("../utils/apiError")
@@ -11,7 +11,8 @@ const {createToken}=require("../middelweres/createtoken")
     let Token;
     const user=await Users.findOne({
         email:req.body.email,    
-    })
+    }).select(`password`)
+    // compare تقوم بمقارنة الباسورد 
     if(!user || !(await bcrypt.compare(req.body.password,user.password)))
     {
         return next(new ApiErorr("الايميل او الباسورد غير صحيح",403))
@@ -30,6 +31,7 @@ const {createToken}=require("../middelweres/createtoken")
         createData:Date.now()
 
     } ,{new:true})
+
     if(!user)
         {
             return next(new ApiErorr("المستخدم غير موجود",403))
