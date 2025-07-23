@@ -11,13 +11,11 @@
     let Token;
     const user=await Users.findOne({
         email:req.body.email,    
-    }).select(`password`)
+    })
     // compare تقوم بمقارنة الباسورد 
     if(!user || !(await bcrypt.compare(req.body.password,user.password)))
-    {
-        return next(new ApiErorr("الايميل او الباسورد غير صحيح",403))
-    }
-  
+        {return next(new ApiErorr("الايميل او الباسورد غير صحيح",403))}
+    
     Token=createToken(user._id)
     res.status(200).json({data:user, Token})
  }))

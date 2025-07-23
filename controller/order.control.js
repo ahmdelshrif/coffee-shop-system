@@ -6,44 +6,51 @@ const ApiErorr=require("../utils/apiError")
 const products=require("../model/products.model")
 const Counter = require('../model/counter.model')
 const reports=require("../model/reports.model")
+
+// كونتر لعدد الطلبات 
+async function getNextOrderNumber() {
+  const counter = await Counter.findOneAndUpdate(
+    { name: 'order' },
+    { $inc: { value: 1 } },
+    { new: true, upsert: true } // upsert لإنشاءه أول مرة
+  );
+  return counter.value;
+}
+
 exports.CreatOorder=(synchandler(async(req,res,next)=>{
 // يتم اضاف المنتج و الكميه 
    const { items } = req.body;
 
     // حساب التوتال تلقائي
     let total = 0;
-    for (const item of items) {
-      // ممكن تجيب السعر من قاعدة البيانات لو مش جاي من الفرونت
+   
+    const updatedItems = await Promise.all(
+      items.map(async (item) => {
+        const product = await products.findOneAndUpdate(
+          { name: item.product },
+          { $inc: { sold: item.quantity } },
+          { new: true }
+    );
     
-      const product = await products.findOneAndUpdate({name:item.product},{ $inc: { sold: item.quantity } });
-  
-      console.log(product)
-      if (!product) {
-        return res.status(400).json({ message: `منتج غير موجود: ${item.productId}` });
-      }
+        if (!product) {
+          throw new Error(`منتج غير موجود: ${item.product}`);
+        }
+        item.price = product.price; // أضف السعر داخل الـ item
+        total += item.price * item.quantity;
+        return item;
+      })
+    );
 
-      item.price = product.price; // أضف السعر داخل الـ item
-      total += item.price * item.quantity;
-      item.productId= product._id
-
-    }
- async function getNextOrderNumber() {
-        const counter = await Counter.findOneAndUpdate(
-          { name: 'order' },
-          { $inc: { value: 1 } },
-          { new: true, upsert: true } // upsert لإنشاءه أول مرة
-        );
-        return counter.value;
-      }
+items=updatedItems
 //لحساب الايراد
 await reports.findOneAndUpdate(
           { name: 'report' },
           { $inc: { Revenue: total } },
           { new: true, upsert: true } // upsert لإنشاءه أول مرة
         );
-      
-const orderNumber = await getNextOrderNumber();
-
+// لحساب رقم الاوردر 
+   const orderNumber = await getNextOrderNumber();
+// لعمل اوردير جديد 
      const order = await orders.create({
       employee:req.User.name ,
       items,
@@ -51,37 +58,30 @@ const orderNumber = await getNextOrderNumber();
       numofOrder:orderNumber,
     });
 
-        res.status(201).json({
-      status: 'success',
-      data: order
-    });
-    if(!order)
-    {
-        return next(new ApiErorr(`لا يوجد اودير تم اضافته `,403))
-    }
-    res.status(200).json({data:order})
+    if(!order) return next(new ApiErorr(`لا يوجد اودير تم اضافته `,403))
+    
+    res.status(200).json({ status: 'success',وdata:order})
 }))
 
+// عرض اوردير معين 
 exports.getorder=(synchandler(async(req,res,next)=>{
 
     const order=await orders.findOne({_id:req.params.id}).select("-_id -items._id ")
  
-    console.log(order)
+  
     if(!order)
-    {
-        return next(new ApiErorr(`لا توجد اوردير `,403))
-    }
+    { return next(new ApiErorr(`لا توجد اوردير `,403)) }
+
     res.status(200).json({data:order})
 
 }))
-exports.getallOrders=(synchandler(async(req,res,next)=>{
+// عرض جميع الاوردير 
+exports.getsOrder=(synchandler(async(req,res,next)=>{
 
     const order=await orders.find().select("-_id -items._id ")
     
     if(order.length==0)
-    {
-        return next(new ApiErorr(`لا توجد اوردير `,403))
-    }
+    {  return next(new ApiErorr(`لا توجد اوردير `,403)) }
     res.status(200).json({data:order})
 
 }))
@@ -89,60 +89,60 @@ exports.getallOrders=(synchandler(async(req,res,next)=>{
 exports.UpdateOrder = synchandler(async (req, res, next) => {
   let total = 0;
 
-  const order = await orders.findOne({ numofOrder:req.body.numofOrder });
+  const order = await orders.findOne({ numofOrder: req.body.numofOrder });
   if (!order) {
     return next(new ApiErorr("الطلب غير موجود", 404));
   }
 
-  const items = order.items;
-  let Orderfound=false
-  for (const item of items) {
+  let Orderfound = false;
 
-    if (item.product == req.body.name) {
-      // ارجع الكمية القديمة
-      await products.findOneAndUpdate(
-        { name: item.product },
-        { $inc: { sold: -item.quantity } }
-      );
-      await reports.findOneAndUpdate(
-        { name:'report' },
-        { $inc: { Revenue: -item.price *item.quantity } },
-      );
+  const updatedItems = await Promise.all(
+    order.items.map(async (item) => {
+      if (item.product === req.body.name) {
+        // رجّع المخزون والإيراد القديم
+  const product=  await products.findOneAndUpdate(
+          { name: item.product },
+          { $inc: { sold: -item.quantity } }
+        );
 
+        await reports.findOneAndUpdate(
+          { name: "report" },
+          { $inc: { Revenue: -item.price * item.quantity } }
+        );
 
-      // عدل البيانات
-      item.quantity = req.body.quantity;
+        // حدّث الكمية
+        item.quantity = req.body.quantity;
 
-      let updatedProduct = await products.findOneAndUpdate(
-        { name: item.product },
-        { $inc: { sold: item.quantity } },
-        { new: true }
-      );
-     //تعديل السعر 
-      item.price = updatedProduct.price;
+        // حدث المنتج بالمخزون الجديد
+        product.sold={ $inc: { sold: -item.quantity } }
 
-       await reports.findOneAndUpdate(
-        { name:'report' },
-        { $inc: { Revenue: updatedProduct.price * req.body.quantity} },
-        { new: true }
-      );
- 
-      Orderfound=true
-   
-    }
+        // عدل السعر
+        item.price = product.price;
+        item.product=product.name
 
+        // حدث الإيراد الجديد
+        await reports.findOneAndUpdate(
+          { name: "report" },
+          { $inc: { Revenue: product.price * req.body.quantity } }
+        );
 
+        Orderfound = true;
+        
+      }
+      return item;
+    })
+  );
+console.log(updatedItems)
+  if (!Orderfound) {
+    return next(new ApiErorr(`لا يوجد طلب بهذا الاسم`, 404));
   }
-if(Orderfound==false)
-{
-  return next(new ApiErorr(`لا يوجد طلب بهذا الاسم `, 404));
-}
 
   // احسب الإجمالي الجديد
-  for (const item of items) {
+  for (const item of updatedItems) {
     total += item.quantity * item.price;
   }
 
+  order.items = updatedItems;
   order.total = total;
   await order.save();
 
@@ -150,7 +150,7 @@ if(Orderfound==false)
 });
 
 
-exports.DeleteOne = synchandler(async (req, res, next) => {
+exports.deleteOne_Order = synchandler(async (req, res, next) => {
   let total=0;
   const order = await orders.findOne({ numofOrder: req.body.numofOrder });
   if (!order) {
@@ -185,7 +185,6 @@ exports.DeleteOne = synchandler(async (req, res, next) => {
   for (const item of items) {
     total += item.quantity * item.price;
   }
-
   order.total = total;
 
   // احفظ التعديل
@@ -196,7 +195,7 @@ exports.DeleteOne = synchandler(async (req, res, next) => {
 
 
 
-exports.DelteAll=(synchandler(async(req,res,next)=>{
+exports.deleteOrders=(synchandler(async(req,res,next)=>{
 
   const order = await orders.findOneAndDelete({ numofOrder: req.body.numofOrder });
   if (!order) {
@@ -204,23 +203,20 @@ exports.DelteAll=(synchandler(async(req,res,next)=>{
   }
 
 const items=order.items
-for(let item of items)
-{
-  const prooduct= await products.findOneAndUpdate(
+
+ await Promise.all(
+  items.map(async(item)=>{
+    await products.findOneAndUpdate(
     { name: items.product },
-    { $inc: { sold: -item.quantity } }
-  );
-  if(!prooduct){
-    return next(new ApiErorr(`حصل خطاء`, 400));
-  }
-  await reports.findOneAndUpdate(
+    { $inc: { sold: -item.quantity } })
+
+    await reports.findOneAndUpdate(
     { name:'report' },
     { $inc: { Revenue:-(item.quantity * item.price) } },
     { new: true }
   );
-
-
-}
+  })
+)
   res.status(200).json({ message: "تم حذف الطلب بنجاح" });
 }))
 

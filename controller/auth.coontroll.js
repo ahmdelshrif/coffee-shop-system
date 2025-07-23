@@ -77,7 +77,7 @@ res.status(200).json({data:user, Token})
 }))
 
 // عرض كل المستخدمين للمانجير
-exports.Allusers=(synchandler(async(req,res,next)=>{
+exports.getUsers=(synchandler(async(req,res,next)=>{
     const users = await Users.find({ role: { $ne: "admin" } }).select("name email role isActive");
     if (!users.length) return next(new ApiErorr("لا يوجد مستخدمين", 404));
     res.status(200).json({ data: users });

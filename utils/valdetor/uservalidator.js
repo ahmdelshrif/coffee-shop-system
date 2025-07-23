@@ -1,12 +1,20 @@
 const { check, body } = require('express-validator');
-// const slugify=require("slugify")
 const synchandler=require("express-async-handler")
-// eslint-disable-next-line import/no-extraneous-dependencies
-// const bycrpt=require("bcryptjs")
 const User=require("../../model/Users.model")
 const validetorError=require("../../middelweres/validetorError")
 
-exports.updaterooreuser=[check(`name`).optional()
+
+// تحديد ال erorr اثناء عرض loginUser_catchError
+exports.loginUser_catchError=[check(`email`).notEmpty().withMessage(`يجب ادخال الايميل `)
+  .custom(async(email)=>{
+    const user= await User.findOne({email:email})
+if(!user){return Promise.reject(new Error("يوجد خطاء في الايميل او الباسورد"))}
+  }),check(`password`).notEmpty().withMessage(`يجب ادخال الباسورد `)
+  ,validetorError
+]
+
+// تحديد ال erorr اثناء عرض updateUser_catchError
+exports.updateUser_catchError=[check(`name`).optional()
     .isLength({min:3})
     .withMessage(`الاسم قليل يجب ان يكون اكثر من 3 حروف`)
     .isLength({max:32})
@@ -30,5 +38,4 @@ exports.updaterooreuser=[check(`name`).optional()
           }
         }),
   check("passwordConfirm").optional()
-
 ,validetorError]

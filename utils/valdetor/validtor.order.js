@@ -5,7 +5,7 @@ const validatorMiddleware = require('../../middelweres/validetorError');
 const { param } = require('../../router/order.router');
 const orders=require("../../model/order.model")
 
-exports.careateordersValidator=[check(`items`).notEmpty()
+exports.creatOrder_catchError=[check(`items`).notEmpty()
           .withMessage("يجب إدخال صنف واحد على الأقل")
           .custom(async (items) => {
             if (!Array.isArray(items)) {
@@ -38,7 +38,7 @@ exports.careateordersValidator=[check(`items`).notEmpty()
         validatorMiddleware,
       ]
 
-exports.getorderErrors=[check(`id`).isMongoId().withMessage(`لا يوجد id`).
+exports.SpecifiedOrder_catchError=[check(`id`).isMongoId().withMessage(`لا يوجد id`).
     custom(async (val)=>{
       const order=await  orders.findOne({_id:val})
       if(!order){
@@ -48,7 +48,7 @@ exports.getorderErrors=[check(`id`).isMongoId().withMessage(`لا يوجد id`).
     }),validatorMiddleware
 ]
 
-exports.updateOnesubcategoryErrors=[check(`name`).notEmpty()
+exports.updateOrder_catchError=[check(`name`).notEmpty()
     .withMessage( `يجب تحديد الصنف المطلوب تعديله`),check(`quantity`).notEmpty()
     .withMessage( `يجب تحديد الكميه `).custom((value)=>{
         if (typeof value !== "number" || value <= 0) {
@@ -58,7 +58,7 @@ exports.updateOnesubcategoryErrors=[check(`name`).notEmpty()
     }),validatorMiddleware
 
 ]
-exports.addingitemError=[check(`quantity`).notEmpty()
+exports.addingitem_catchError=[check(`quantity`).notEmpty()
     .withMessage( `يجب تحديد الكميه `).custom((value)=>{
         if (typeof value !== "number" || value <= 0) {
             throw new Error(` الكمية غير صالحة`);

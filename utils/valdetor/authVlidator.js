@@ -8,7 +8,7 @@ const validetorError=require("../../middelweres/validetorError")
 
 // exports.getUservalidator=check(`id`).isMongoId().withMessage("invaled id ")
 
-exports.creatUserErrors=[check(`name`).notEmpty().withMessage(`يجب اداخل الاسم`)
+exports.creatUser_catchError=[check(`name`).notEmpty().withMessage(`يجب اداخل الاسم`)
     .isLength({min:3})
     .withMessage(`الاسم قليل يجب ان يكون اكثر من 3 حروف`)
     .isLength({max:32})
@@ -49,14 +49,11 @@ check("passwordConfirm").notEmpty().withMessage("يجب اداخل تاكيد ك
      
 ]
 
-exports.updateErorrrole=[check(`id`)
+exports.updateRoleUser_catchError=[check(`id`)
     .isMongoId()
     .withMessage("غير موجود هذا المسختدم ").custom(async(value)=>{
       const user=await User.findOne({_id:value})
-      if(!user)
-      {
-        return Promise.reject(new Error("لا يوجد مستخدم بهذا ال id"))
-      }
+      if(!user)   return Promise.reject(new Error("لا يوجد مستخدم بهذا ال id")) 
     })
     ,check("role")
    
@@ -72,7 +69,7 @@ exports.updateErorrrole=[check(`id`)
     ,validetorError]
 
 
-exports.DeleteOneUserErrors=[check(`id`).isMongoId().withMessage("invaled id ")
+exports.deleteUser_catchError=[check(`id`).isMongoId().withMessage("invaled id ")
     .custom(async(value,{req})=>{
         const user= await User.findById(req.params.id)
         if(!user)

@@ -24,7 +24,7 @@ const orderSchema = new mongoose.Schema({
       productId: {
         type:mongoose.Schema.ObjectId,
         ref:"product",
-        required:[true,`product required`]
+        required:[true,`المنتج مطلوب `]
     },
 
     }
@@ -45,7 +45,10 @@ const orderSchema = new mongoose.Schema({
     type:Number,
    
 },//الايراد
-
+// NumofTable :{
+//   type :String,
+//   required:[true,`يجب تحديد رقم الطربيزه `]
+// }
 });
 
 module.exports = mongoose.model('Order', orderSchema);
