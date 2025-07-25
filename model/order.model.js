@@ -21,11 +21,11 @@ const orderSchema = new mongoose.Schema({
         required: [true, 'الكمية مطلوبة'],
         min: [1, 'الكمية لا تقل عن 1']
       },
-      productId: {
-        type:mongoose.Schema.ObjectId,
-        ref:"product",
-        required:[true,`المنتج مطلوب `]
-    },
+    //   productId: {
+    //     type:mongoose.Schema.ObjectId,
+    //     ref:"product",
+    //     required:[true,`المنتج مطلوب `]
+    // },
 
     }
   ],

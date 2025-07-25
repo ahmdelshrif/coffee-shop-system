@@ -19,18 +19,17 @@ async function getNextOrderNumber() {
 
 exports.CreatOorder=(synchandler(async(req,res,next)=>{
 // يتم اضاف المنتج و الكميه 
-   const { items } = req.body;
+   let { items } = req.body;
 
     // حساب التوتال تلقائي
     let total = 0;
    
-    const updatedItems = await Promise.all(
+    let updatedItems = await Promise.all(
       items.map(async (item) => {
         const product = await products.findOneAndUpdate(
           { name: item.product },
           { $inc: { sold: item.quantity } },
-          { new: true }
-    );
+          { new: true } );
     
         if (!product) {
           throw new Error(`منتج غير موجود: ${item.product}`);
@@ -45,9 +44,10 @@ items=updatedItems
 //لحساب الايراد
 await reports.findOneAndUpdate(
           { name: 'report' },
-          { $inc: { Revenue: total } },
+          { $inc: { Revenue: total , Profits: total } },
           { new: true, upsert: true } // upsert لإنشاءه أول مرة
         );
+       
 // لحساب رقم الاوردر 
    const orderNumber = await getNextOrderNumber();
 // لعمل اوردير جديد 
@@ -60,7 +60,7 @@ await reports.findOneAndUpdate(
 
     if(!order) return next(new ApiErorr(`لا يوجد اودير تم اضافته `,403))
     
-    res.status(200).json({ status: 'success',وdata:order})
+    res.status(200).json({ status: 'success',data:order})
 }))
 
 // عرض اوردير معين 
@@ -107,7 +107,7 @@ exports.UpdateOrder = synchandler(async (req, res, next) => {
 
         await reports.findOneAndUpdate(
           { name: "report" },
-          { $inc: { Revenue: -item.price * item.quantity } }
+          { $inc: { Revenue: -item.price * item.quantity,Profits: -item.price * item.quantity } },
         );
 
         // حدّث الكمية
@@ -123,7 +123,9 @@ exports.UpdateOrder = synchandler(async (req, res, next) => {
         // حدث الإيراد الجديد
         await reports.findOneAndUpdate(
           { name: "report" },
-          { $inc: { Revenue: product.price * req.body.quantity } }
+          { $inc: { Revenue: product.price * req.body.quantity 
+            ,Profits: product.price * req.body.quantity } },
+          
         );
 
         Orderfound = true;
@@ -174,7 +176,9 @@ exports.deleteOne_Order = synchandler(async (req, res, next) => {
   
   await reports.findOneAndUpdate(
     { name:'report' },
-    { $inc: { Revenue:-(items[index].quantity* prooduct.price) } },
+    { $inc: { Revenue:-(items[index].quantity* prooduct.price) ,
+      Profits:-(items[index].quantity* prooduct.price)} },
+   
     { new: true }
   );
 
@@ -212,7 +216,9 @@ const items=order.items
 
     await reports.findOneAndUpdate(
     { name:'report' },
-    { $inc: { Revenue:-(item.quantity * item.price) } },
+    { $inc: { Revenue:-(item.quantity * item.price),
+      Profits:-(item.quantity * item.price) } },
+   
     { new: true }
   );
   })
@@ -253,7 +259,9 @@ exports.addingOneitem = synchandler(async (req, res, next) => {
 
   await reports.findOneAndUpdate(
     { name:'report' },
-    { $inc: { Revenue: updatedProduct.price * req.body.quantity} },
+    { $inc: { Revenue: updatedProduct.price * req.body.quantity},
+    Profits: updatedProduct.price * req.body.quantity },
+
     { new: true }
   );
 

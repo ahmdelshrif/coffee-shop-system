@@ -14,6 +14,8 @@ const Product=require("./model/products.model")
 const cron = require("node-cron");
 const ReportMonth=require("./model/report.model.month")
 const routerReportMonth=require("./router/report.month")
+const routerInvoice=require("./router/Invoice.router")
+
 
 //connection
 dbconnection()
@@ -29,6 +31,7 @@ app.use("/api/v2/user",routeruer)
 app.use("/api/v2/order",routerorder)
 app.use("/api/v2/reports",routerreport)
 app.use("/api/v2/reportmonthly",routerReportMonth)
+app.use("/api/v2/Invoice",routerInvoice)
   
 //globalEorrs error handling middlewere for express
 app.use(globalEorrs)
@@ -40,7 +43,7 @@ const server = app.listen(PORT, () => {
   
 })
 
-cron.schedule('0 0 * * *', async () => {
+cron.schedule('0 0 * * * *', async () => {
   try {
     console.log(" جاري حفظ التقرير الشهري وتصفير البيانات...");
 
@@ -56,6 +59,7 @@ cron.schedule('0 0 * * *', async () => {
       Profits: reports.Profits,
       Revenue: reports.Revenue,
       Expenses: reports.Expenses,
+      invoce:reports.invoce,
       date: new Date()
     };
 
@@ -65,7 +69,8 @@ cron.schedule('0 0 * * *', async () => {
         $push: {
           Profits: newItem.Profits,
           Revenue: newItem.Revenue,
-          Expenses: newItem.Expenses
+          Expenses: newItem.Expenses,
+          invoce:newItem.invoce
         }
       },
       { new: true, upsert: true }

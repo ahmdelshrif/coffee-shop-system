@@ -32,7 +32,8 @@ exports.getOneDayofMonthly = synchandler(async (req, res, next) => {
     if (
       report.Profits.length < day ||
       report.Revenue.length < day ||
-      report.Expenses.length < day
+      report.Expenses.length < day ||
+      report.invoce.length < day
     ) {
       return next(new ApiErorr("لا يوجد بيانات لهذا اليوم", 404));
     }
@@ -44,6 +45,7 @@ exports.getOneDayofMonthly = synchandler(async (req, res, next) => {
         Profits: report.Profits[day - 1],
         Revenue: report.Revenue[day - 1],
         Expenses: report.Expenses[day - 1],
+        invoce: report.invoce[day - 1],
       },
     });
   });

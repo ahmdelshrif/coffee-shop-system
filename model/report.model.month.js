@@ -29,6 +29,11 @@ const reportsMonthSchema = new mongoose.Schema({
       message: "القيم يجب أن تكون أرقام موجبة",
     },
   },
+  invoce:{
+    type: Number,
+    min: [1, 'الكمية يجب أن تكون 1 على الأقل'], // أقل قيمة
+    default:0
+}
 });
 
 const ReportsMonth = mongoose.model("reportmonth", reportsMonthSchema);

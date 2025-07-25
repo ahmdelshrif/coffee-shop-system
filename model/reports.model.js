@@ -1,7 +1,7 @@
 const mongoose =require("mongoose")
 
 reportsSchmema=new mongoose.Schema({
-
+        
     name:{
         type:String,
     },
@@ -10,13 +10,20 @@ reportsSchmema=new mongoose.Schema({
         default:0
     },//المصروفات - الايراد اليوم 
     Revenue:{
-        type:Number,
+        type: Number,
+        min: [1, 'الكمية يجب أن تكون 1 على الأقل'], // أقل قيمة
         default:0
     },//الايراد
     Expenses:{
-        type:Number,
+        type: Number,
+        min: [1, 'الكمية يجب أن تكون 1 على الأقل'], // أقل قيمة
         default:0
-    }//المصروفات
+    },//المصروفات
+  invoce:{
+    type: Number,
+    min: [1, 'الكمية يجب أن تكون 1 على الأقل'], // أقل قيمة
+    default:0
+}
 })
 const reports=  mongoose.model("report",reportsSchmema)
 module.exports=reports
