@@ -15,12 +15,15 @@ const cron = require("node-cron");
 const ReportMonth=require("./model/report.model.month")
 const routerReportMonth=require("./router/report.month")
 const routerInvoice=require("./router/Invoice.router")
+const cors = require("cors");
 
 
 //connection
 dbconnection()
 
+
 const app=express()
+app.use(cors()); // ✅ هنا تمام
 app.use(express.json())
 
 //router

@@ -1,3 +1,4 @@
+
 const jwt=require("jsonwebtoken")
 
  exports.createToken=(payload)=>{
@@ -6,4 +7,3 @@ const token=jwt.sign({userId:payload},process.env.TokenSecret,{
 })
 return token
 }
-

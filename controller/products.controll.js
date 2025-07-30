@@ -7,7 +7,7 @@ const uploadSingleImage =require("../middelweres/uploadStringimg")
 const sharp=require("sharp")
 const { v4: uuidv4 } = require('uuid');
 const { select } = require("async")
-
+const categories=require("../model/category.model")
 
 //رفع صوره لل product
 exports.uploadproductsImages = uploadSingleImage.uploadSingleImage('image');
@@ -29,21 +29,32 @@ req.body.image = filename;
 });
 
 // انشاء Product
-exports.creatProduct=(synchandler(async(req,res,next)=>{
-    product=await products.create({
-        name:req.body.name,
-        description:req.body.description,
-        creatAt:Date.now(),
-        image:req.body.image,
-        price:req.body.price,
-        category:req.body.category
-    })
-  if(!product)
-    {
-       return next(new ApiErorr(`عمليه الاضافه غير ناجحه`,403))
-    }
-    res.status(200).json({Date:product})
-}))
+exports.creatProduct = synchandler(async (req, res, next) => {
+  // 1. نبحث عن الفئة باستخدام الاسم المُرسل
+  const category = await categories.findOne({ name: req.body.category });
+console.log(category)
+  // 2. لو مش لاقيها نرجع خطأ
+  if (!category) {
+    return next(new ApiErorr(`لا يوجد صنف بالاسم: ${req.body.category}`, 404));
+  }
+
+  // 3. نستخدم ID الفئة الحقيقي في الإنشاء
+  const product = await products.create({
+    name: req.body.name,
+    description: req.body.description,
+    image: req.body.image,
+    price: req.body.price,
+    category: category._id, // <-- ربط فعلي بالـ ObjectId
+    createdAt: Date.now()
+  });
+
+  if (!product) {
+    return next(new ApiErorr(`عمليه الاضافه غير ناجحه`, 403));
+  }
+
+  res.status(200).json({ Data: product });
+});
+
 
 // تعديل Product
 exports.updateProduct=(synchandler(async(req,res,next)=>{
@@ -74,59 +85,51 @@ exports.getSpecifiedProduct=(synchandler(async(req,res,next)=>{
     res.status(200).json({data:product})
 }))
 
-// عرض المنتجات 
 exports.getProducts = synchandler(async (req, res, next) => {
-    // Pagination
-    const page = req.query.page * 1 || 1;
-    const limit = req.query.limit * 1 || 5;
-    const skip = (page - 1) * limit;
-  
-    // Filtering عمل فلتير علي اي حاجه خاصه بالمنتج (سعر او اسم ...)
-    let QueryString = { ...req.query };
-    const exclude = ["page", "limit", "fields", "sort","keyword"];
-    exclude.map((field) => delete QueryString[field]);
-  
-    // Build query 
-    let mangoosequry = products
-      .find(QueryString)
-      .limit(limit)
-      .skip(skip)
-      .populate({
-        path: "category",
-        select: "name -_id",
-      })
-  
-    // Fields ظهور fields معينه 
-    if (req.query.fields) {
-      const fieldsby = req.query.fields.split(",").join(" ");
-      mangoosequry = mangoosequry.select(fieldsby);
-    }
-  
-    // Sort ترتيب علي حسب حاجه معينه 
-    if (req.query.sort) {
-      const sortby = req.query.sort.split(",").join(" ");
-      mangoosequry = mangoosequry.sort(sortby);
-    }
-    //search بحث باسم معين 
-    if(req.query.keyword)
-    {
-        let Query={}
-        Query.$or= [
-          { description: { $regex: req.query.keyword, $options: 'i' } },
-          { name : { $regex: req.query.keyword, $options: 'i' } }
-        ]
-        mangoosequry=mangoosequry.find(Query)
-      }
-      
-    // Execute query
-    const product = await mangoosequry;
-    if (!product || product.length === 0) {
-      return next(new ApiErorr(`لا يوجد منتج `, 404));
-    }
-    res.status(200).json({
-      Date: product,
-      Resulte: product.length,
-      page,
-    });
+  const page = req.query.page * 1 || 1;
+  const limit = req.query.limit * 1 || 5;
+  const skip = (page - 1) * limit;
+
+  let QueryString = { ...req.query };
+  const exclude = ["page", "limit", "fields", "sort", "keyword"];
+  exclude.map((field) => delete QueryString[field]);
+
+  if (req.query.keyword) {
+    QueryString.$or = [
+      { description: { $regex: req.query.keyword, $options: 'i' } },
+      { name: { $regex: req.query.keyword, $options: 'i' } },
+    ];
+  }
+
+  const totalCount = await products.countDocuments(QueryString);
+
+  let mangoosequry = products
+    .find(QueryString)
+    .populate({
+      path: "category",
+      select: "name",
+    })
+    .limit(limit)
+    .skip(skip)
+    .sort({ price: 1 }); // ✅ الترتيب حسب السعر من الأقل للأعلى
+
+  if (req.query.fields) {
+    const fieldsby = req.query.fields.split(",").join(" ");
+    mangoosequry = mangoosequry.select(fieldsby);
+  }
+
+  const product = await mangoosequry;
+
+  if (!product || product.length === 0) {
+    return next(new ApiErorr(`لا يوجد منتج `, 404));
+  }
+
+  res.status(200).json({
+    Date: product,
+    Resulte: product.length,
+    totalCount,
+    page,
+    totalPages: Math.ceil(totalCount / limit),
   });
+});
   

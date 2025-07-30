@@ -1,3 +1,4 @@
+
 const { check, body } = require('express-validator');
 // const slugify=require("slugify")
 const synchandler=require("express-async-handler")
@@ -78,6 +79,3 @@ exports.deleteUser_catchError=[check(`id`).isMongoId().withMessage("invaled id "
         }
     })
 ]
-
-
-

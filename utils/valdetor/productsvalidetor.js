@@ -23,16 +23,8 @@ exports.creatproduct_catchError=[check(`name`)
   .withMessage(`الحرف قليله يجب اقل شي 3 حروف`)
   .isLength({max:32}).withMessage(`الحروف كبيره اقصي عدد 32`)
   ,check("image").optional()
-  ,check("description").optional(),check("category").notEmpty()
-  .withMessage("يجب ان تضيف المنتج الي صنف معين ").isMongoId()
-  .withMessage("لا يوجد id ").custom(async(vale)=>{
-   const category= await categories.findOne({_id:vale})
-    if(!category){
-        return Promise.reject(
-          new Error(`لا يوجد صنف بهذ ال id : ${vale}`)
-        );
-    }
-  }),check("price").notEmpty().withMessage("يجب تحديد السعر")
+  ,check("description").optional()
+  ,check("price").notEmpty().withMessage("يجب تحديد السعر")
     .isNumeric().withMessage("يجب ان يكون رقم")
     ,validetorError
 ]

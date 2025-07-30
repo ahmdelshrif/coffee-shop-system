@@ -1,3 +1,4 @@
+
 const { check, body } = require('express-validator');
 const synchandler=require("express-async-handler")
 const User=require("../../model/Users.model")

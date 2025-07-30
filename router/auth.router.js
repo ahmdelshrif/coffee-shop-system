@@ -8,15 +8,15 @@ const {Singup, protect ,allowTO,
 
 const {creatUser_catchError,updateRoleUser_catchError,deleteUser_catchError}=require("../utils/valdetor/authVlidator")
 
-router.route("/singup").post(protect,allowTO("manager","admin"),
+router.route("/singup").post(protect,allowTO("manager","admin","cashier"),
 uploaduserImages,resizeImage,
 creatUser_catchError,Singup)
 
-router.route("/Allusers").get(protect,allowTO("manager","admin"),getUsers)
-router.route("/deactivate/:id").put(protect,allowTO("manager","admin")
+router.route("/Allusers").get(protect,allowTO("manager","admin","cashier"),getUsers)
+router.route("/deactivate/:id").put(protect,allowTO("manager","admin","cashier")
 ,deleteUser_catchError,deactivate)
 
 router.route("/updaterole/:id").
-put(protect,allowTO("manager","admin"),updateRoleUser_catchError,updaterole)
+put(protect,allowTO("manager","admin","cashier"),updateRoleUser_catchError,updaterole)
 
 module.exports=router

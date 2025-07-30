@@ -10,15 +10,15 @@ const {creatCategory_catchError,updateCategory_catchError,
 deleteCategory_catchError,
 SpecifiedCategory_catchError}=require("../utils/valdetor/categoryvalidator")
 
-router.route("/").post(protect,allowTO("manager","admin")
+router.route("/").post(protect,allowTO("manager","admin","cashier")
 ,uploadCategoryImages,resizeImage,
 creatCategory_catchError,creatCategory)
 .get(getCategories)
 
 
 router.route("/:id").get(SpecifiedCategory_catchError,getSpecifiedCategory)
-.put(protect,allowTO("manager","admin"),uploadCategoryImages,resizeImage,
+.put(protect,allowTO("manager","admin","cashier"),uploadCategoryImages,resizeImage,
 updateCategory_catchError,updateCategory)
-.delete(protect,allowTO("manager","admin"),deleteCategory_catchError,deleteCategory)
+.delete(protect,allowTO("manager","admin","cashier"),deleteCategory_catchError,deleteCategory)
 
 module.exports=router
