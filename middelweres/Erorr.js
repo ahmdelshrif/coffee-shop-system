@@ -23,12 +23,12 @@ exports.globalEorrs= (err,req,res,next)=>{
 
 // عرض ال erorr في ال Devlopment
 const senderrorforev=(err,res)=>{
-    res.status(err.statusCode).json({
-        satuts:err.status,
-        err:err,
-        msg:err.message,
-        stack:err.stack,       
-         })
+  res.status(err.statusCode).json({
+    status: err.status,
+    message: err.message,
+    error: err,
+    stack: err.stack,
+  });
  }
 
 
@@ -41,10 +41,10 @@ const senderrorforproducct=(err,res)=>{
          else if(err.name==="TokenExpiredError"){
            err= new ApiError("expirt token ", 400);
           }
-            res.status(err.statusCode).json({
-             satuts:err.status,
-             msg:err.message,
-            })   
+          res.status(err.statusCode).json({
+            status: err.status,
+            message: err.message,
+          }); 
 }
 
 

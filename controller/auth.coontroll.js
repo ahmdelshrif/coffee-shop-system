@@ -63,7 +63,8 @@ exports.allowTO=(...roles)=>
 
 if(!roles.includes(req.User.role))
 {
-    return next(new ApiErorr("ليس له سماحيه لهذا المستخدم ",403))
+    return next(new ApiErorr(`ليس لديك صلاحية للقيام بهذه العملية`, 403));
+
 }
 next()
  })

@@ -72,6 +72,7 @@ exports.deleteProduct=(synchandler(async(req,res,next)=>{
     if (!product) {
         return next(new ApiErorr(`لا يوجد منتج لهذا ال id : ${req.params.id}`, 404));
     }
+
     res.status(200).json({data:product})
 }))
 
@@ -91,8 +92,18 @@ exports.getProducts = synchandler(async (req, res, next) => {
   const skip = (page - 1) * limit;
 
   let QueryString = { ...req.query };
-  const exclude = ["page", "limit", "fields", "sort", "keyword"];
+  const exclude = ["page", "limit", "fields", "sort", "keyword", "categoryName"];
   exclude.map((field) => delete QueryString[field]);
+  
+  // فلترة بالاسم لو جالك اسم فئة
+  if (req.query.categoryName) {
+    const categoryDoc = await categories.findOne({ name: req.query.categoryName });
+    if (categoryDoc) {
+      QueryString.category = categoryDoc._id;
+    } else {
+      return next(new ApiErorr(`لا توجد فئة باسم ${req.query.categoryName}`, 404));
+    }
+  }
 
   if (req.query.keyword) {
     QueryString.$or = [

@@ -1,12 +1,13 @@
-
 const { validationResult } = require('express-validator');
 
-// عرض ال eroor
-const ValdetorErros=(req,res,next)=>{
-const error=validationResult(req);
-if(!error.isEmpty()){
-    res.status(400).json({errors:error.array()})   
-}
-next();
-}
-module.exports=ValdetorErros
+// عرض الأخطاء بشكل واضح للفرونت
+const ValdetorErros = (req, res, next) => {
+  const error = validationResult(req);
+  if (!error.isEmpty()) {
+    // ✅ رجّع أول رسالة خطأ فقط
+    return res.status(400).json({ message: error.array()[0].msg });
+  }
+  next();
+};
+
+module.exports = ValdetorErros;
