@@ -5,7 +5,7 @@ dotenv.config({path:"conf.env"})
 const ApiErorr=require("../utils/apiError")
 const products=require("../model/products.model")
 const Counter = require('../model/counter.model')
-const reports=require("../model/reports.model")
+// const reports=require("../model/reports.model")
 
 // كونتر لعدد الطلبات 
 async function getNextOrderNumber() {
@@ -42,11 +42,11 @@ exports.CreatOorder=(synchandler(async(req,res,next)=>{
 
 items=updatedItems
 //لحساب الايراد
-await reports.findOneAndUpdate(
-          { name: 'report' },
-          { $inc: { Revenue: total , Profits: total } },
-          { new: true, upsert: true } // upsert لإنشاءه أول مرة
-        );
+// await reports.findOneAndUpdate(
+//           { name: 'report' },
+//           { $inc: { Revenue: total , Profits: total } },
+//           { new: true, upsert: true } // upsert لإنشاءه أول مرة
+//         );
        
 // لحساب رقم الاوردر 
    const orderNumber = await getNextOrderNumber();
@@ -105,10 +105,10 @@ exports.UpdateOrder = synchandler(async (req, res, next) => {
           { $inc: { sold: -item.quantity } }
         );
 
-        await reports.findOneAndUpdate(
-          { name: "report" },
-          { $inc: { Revenue: -item.price * item.quantity,Profits: -item.price * item.quantity } },
-        );
+        // await reports.findOneAndUpdate(
+        //   { name: "report" },
+        //   { $inc: { Revenue: -item.price * item.quantity,Profits: -item.price * item.quantity } },
+        // );
 
         // حدّث الكمية
         item.quantity = req.body.quantity;
@@ -121,12 +121,12 @@ exports.UpdateOrder = synchandler(async (req, res, next) => {
         item.product=product.name
 
         // حدث الإيراد الجديد
-        await reports.findOneAndUpdate(
-          { name: "report" },
-          { $inc: { Revenue: product.price * req.body.quantity 
-            ,Profits: product.price * req.body.quantity } },
+        // await reports.findOneAndUpdate(
+        //   { name: "report" },
+        //   { $inc: { Revenue: product.price * req.body.quantity 
+        //     ,Profits: product.price * req.body.quantity } },
           
-        );
+        // );
 
         Orderfound = true;
         
@@ -174,13 +174,13 @@ exports.deleteOne_Order = synchandler(async (req, res, next) => {
     { $inc: { sold: -items[index].quantity } }
   );
   
-  await reports.findOneAndUpdate(
-    { name:'report' },
-    { $inc: { Revenue:-(items[index].quantity* prooduct.price) ,
-      Profits:-(items[index].quantity* prooduct.price)} },
+  // await reports.findOneAndUpdate(
+  //   { name:'report' },
+  //   { $inc: { Revenue:-(items[index].quantity* prooduct.price) ,
+  //     Profits:-(items[index].quantity* prooduct.price)} },
    
-    { new: true }
-  );
+  //   { new: true }
+  // );
 
 
   // احذف العنصر من الطلب
@@ -214,13 +214,13 @@ const items=order.items
     { name: items.product },
     { $inc: { sold: -item.quantity } })
 
-    await reports.findOneAndUpdate(
-    { name:'report' },
-    { $inc: { Revenue:-(item.quantity * item.price),
-      Profits:-(item.quantity * item.price) } },
+  //   await reports.findOneAndUpdate(
+  //   { name:'report' },
+  //   { $inc: { Revenue:-(item.quantity * item.price),
+  //     Profits:-(item.quantity * item.price) } },
    
-    { new: true }
-  );
+  //   { new: true }
+  // );
   })
 )
   res.status(200).json({ message: "تم حذف الطلب بنجاح" });
@@ -257,16 +257,16 @@ exports.addingOneitem = synchandler(async (req, res, next) => {
     return next(new ApiErorr("المنتج غير موجود", 404));
   }
 
-  await reports.findOneAndUpdate(
-    { name:'report' },
-    { $inc: { Revenue: updatedProduct.price * req.body.quantity},
-    Profits: updatedProduct.price * req.body.quantity },
+  // await reports.findOneAndUpdate(
+  //   { name:'report' },
+  //   { $inc: { Revenue: updatedProduct.price * req.body.quantity},
+  //   Profits: updatedProduct.price * req.body.quantity },
 
-    { new: true }
-  );
+  //   { new: true }
+  // );
 
-  newItem.price = updatedProduct.price;
-  newItem.productId = updatedProduct._id,
+  // newItem.price = updatedProduct.price;
+  // newItem.productId = updatedProduct._id,
 
   order.items.push(newItem);
 

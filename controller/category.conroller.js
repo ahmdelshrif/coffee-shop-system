@@ -1,5 +1,6 @@
 const synchandler=require("express-async-handler")
 const categories=require("../model/category.model")
+const product=require("../model/products.model")
 const dotenv=require("dotenv")
 dotenv.config({path:"conf.env"})
 const ApiErorr=require("../utils/apiError")
@@ -60,6 +61,9 @@ exports.updateCategory=(synchandler(async(req,res,next)=>{
 exports.deleteCategory=(synchandler(async(req,res,next)=>{
 
     const caetgory=await categories.findByIdAndDelete(req.params.id)
+const idcat=caetgory._id
+await product.deleteMany({ category: idcat },{new:true});
+
 
     if (!caetgory) {
         return next(new ApiErorr(`لا يوجد منتج لهذا ال id : ${req.params.id}`, 404));
@@ -76,14 +80,43 @@ exports.getSpecifiedCategory=(synchandler(async(req,res,next)=>{
     res.status(200).json({Data:caetgory})
 }))
 // عرض categories
-exports.getCategories=(synchandler(async(req,res,next)=>{
-    const page=req.query.page*1 ||1;
-    const limit=req.query.limit*1||5
-    const skip=(page-1)*limit
-    const caetgory=await categories.find().limit(limit).skip(skip).sort("creatAt")
-    if (!caetgory) {
-        return next(new ApiErorr(`لا يوجد صنف بهذا الاسم  `, 404));
+exports.getCategories = synchandler(async (req, res, next) => {
+    const page = req.query.page * 1 || 1;
+    const limit = req.query.limit * 1 || 6;
+    const skip = (page - 1) * limit;
+  
+    const query = {};
+  
+    // لو فيه categoryName كـ فلتر
+    if (req.query.categoryName) {
+      query.name = { $regex: `^${req.query.categoryName.trim()}$`, $options: "i" };
     }
-    res.status(200).json({Data:caetgory ,Resulte:caetgory.length, page})
-}))
-
+  
+    const categoriesList = await categories
+      .find(query)
+      .limit(limit)
+      .skip(skip)
+      .sort("-createdAt"); // ترتيب تنازلي حسب وقت الإنشاء
+  
+    const total = await categories.countDocuments(query);
+  
+    res.status(200).json({
+      Data: categoriesList,
+      total,
+      page,
+    });
+  });
+  
+  exports.getProductsByCategoryId = synchandler(async (req, res, next) => {
+    const categoryId = req.params.id;
+  
+    const products = await product.find({ category: categoryId });
+  
+    if (products.length === 0) {
+      return next(
+        new ApiErorr(`لا يوجد منتجات لهذه الفئة: ${categoryId}`, 404)
+      );
+    }
+  
+    res.status(200).json({ Data: products });
+  });

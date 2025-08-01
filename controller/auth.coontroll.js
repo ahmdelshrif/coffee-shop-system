@@ -74,7 +74,10 @@ exports.Singup=(synchandler (async(req, res, next) =>{
 let Token;
  const user = await Users.create(req.body);
  
-Token=createToken(user._id)
+ Token = createToken({ 
+  userId: user._id, 
+  role: user.role // ✅ نضيفها هنا
+});
 res.status(200).json({data:user, Token})
 }))
 

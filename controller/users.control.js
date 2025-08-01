@@ -16,7 +16,10 @@ exports.login=(synchandler (async(req, res, next) =>{
    if(!user || !(await bcrypt.compare(req.body.password,user.password)))
        {return next(new ApiErorr("الايميل او الباسورد غير صحيح",403))}
    
-   Token=createToken(user._id)
+    Token = createToken({ 
+    userId: user._id, 
+    role: user.role // ✅ نضيفها هنا
+  });
    res.status(200).json({data:user, Token})
 }))
 

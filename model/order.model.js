@@ -41,10 +41,10 @@ const orderSchema = new mongoose.Schema({
     type:Number,
     default:0
   },
-  Revenues:{
-    type:Number,
+//   Revenues:{
+//     type:Number,
    
-},//الايراد
+// },//الايراد
 // NumofTable :{
 //   type :String,
 //   required:[true,`يجب تحديد رقم الطربيزه `]

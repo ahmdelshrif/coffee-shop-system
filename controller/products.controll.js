@@ -57,14 +57,14 @@ console.log(category)
 
 
 // تعديل Product
-exports.updateProduct=(synchandler(async(req,res,next)=>{
-    const product=await products.findByIdAndUpdate(req.params.id, req.body)
-    if(!product)
-    {
-        return next(new ApiErorr(`لا يوجد منتج لهذا ال id : ${id}`,403))
-    }
-    res.status(200).json({data:product})
-}))
+// exports.updateProduct=(synchandler(async(req,res,next)=>{
+//     const product=await products.findByIdAndUpdate(req.params.id, req.body)
+//     if(!product)
+//     {
+//         return next(new ApiErorr(`لا يوجد منتج لهذا ال id : ${id}`,403))
+//     }
+//     res.status(200).json({data:product})
+// }))
 
 // حذف Product
 exports.deleteProduct=(synchandler(async(req,res,next)=>{
@@ -94,10 +94,11 @@ exports.getProducts = synchandler(async (req, res, next) => {
   let QueryString = { ...req.query };
   const exclude = ["page", "limit", "fields", "sort", "keyword", "categoryName"];
   exclude.map((field) => delete QueryString[field]);
-  
-  // فلترة بالاسم لو جالك اسم فئة
+
   if (req.query.categoryName) {
-    const categoryDoc = await categories.findOne({ name: req.query.categoryName });
+    const categoryDoc = await categories.findOne({
+      name: req.query.categoryName,
+    });
     if (categoryDoc) {
       QueryString.category = categoryDoc._id;
     } else {
@@ -107,8 +108,8 @@ exports.getProducts = synchandler(async (req, res, next) => {
 
   if (req.query.keyword) {
     QueryString.$or = [
-      { description: { $regex: req.query.keyword, $options: 'i' } },
-      { name: { $regex: req.query.keyword, $options: 'i' } },
+      { description: { $regex: req.query.keyword, $options: "i" } },
+      { name: { $regex: req.query.keyword, $options: "i" } },
     ];
   }
 
@@ -122,7 +123,7 @@ exports.getProducts = synchandler(async (req, res, next) => {
     })
     .limit(limit)
     .skip(skip)
-    .sort({ price: 1 }); // ✅ الترتيب حسب السعر من الأقل للأعلى
+    .sort({ price: 1 });
 
   if (req.query.fields) {
     const fieldsby = req.query.fields.split(",").join(" ");
@@ -131,10 +132,7 @@ exports.getProducts = synchandler(async (req, res, next) => {
 
   const product = await mangoosequry;
 
-  if (!product || product.length === 0) {
-    return next(new ApiErorr(`لا يوجد منتج `, 404));
-  }
-
+  // ✅ لا ترجع خطأ لو مفيش منتجات، فقط أرسلها فاضية
   res.status(200).json({
     Date: product,
     Resulte: product.length,
@@ -143,4 +141,5 @@ exports.getProducts = synchandler(async (req, res, next) => {
     totalPages: Math.ceil(totalCount / limit),
   });
 });
+
   

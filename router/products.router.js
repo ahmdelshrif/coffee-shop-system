@@ -12,15 +12,15 @@ const {creatproduct_catchError,updateproduct_catchError
       ,deleteproduct_catchError}
       =require("../utils/valdetor/productsvalidetor")
 
-router.route("/").post(protect,allowTO("manager","admin","cashier")
+router.route("/").post(protect,allowTO("manager","admin")
  ,uploadproductsImages,resizeImage,creatproduct_catchError
  ,creatProduct)
-.get(getProducts)
-      
+.get(protect,getProducts)
+
 router.route("/:id").get(Specifiedproduct_catchError,getSpecifiedProduct)
 
-.put(protect,allowTO("manager","admin","cashier"),uploadproductsImages
-,resizeImage,updateproduct_catchError,updateProduct)
+// .put(protect,allowTO("manager","admin"),uploadproductsImages
+// ,resizeImage,updateproduct_catchError,updateProduct)
 
 .delete(protect,allowTO("manager","admin"),deleteproduct_catchError,deleteProduct)
 

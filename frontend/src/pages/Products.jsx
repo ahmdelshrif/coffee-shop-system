@@ -1,19 +1,57 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 
-const categoryOrder = ["مشروبات الساخنه", "مشروبات بارده", "الماكولات"];
+
 
 const Products = () => {
+  const [categoryOrder, setCategoryOrder] = useState([]);
   const [productsByCategory, setProductsByCategory] = useState({});
   const [currentPageByCategory, setCurrentPageByCategory] = useState({});
   const [totalPagesByCategory, setTotalPagesByCategory] = useState({});
   const [error, setError] = useState("");
   const [showFormByCategory, setShowFormByCategory] = useState({});
   const [newProductByCategory, setNewProductByCategory] = useState({});
+  const [userRole, setUserRole] = useState("");
   const navigate = useNavigate();
 
   const limitPerPage = 4;
+  const fetchCategories = async () => {
+    try {
+      const res = await axios.get("http://localhost:9000/api/v2/category", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+  
+      const names = (res.data.Data || []).map((cat) => cat.name);
+      setCategoryOrder(names);
+  
+      // تحميل المنتجات لكل فئة بعد جلب الفئات
+      names.forEach((category) => {
+        fetchCategoryProducts(category);
+      });
+    } catch (err) {
+      console.error("فشل تحميل الفئات", err);
+    }
+  };
+  
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        setUserRole(decoded.role || decoded.data?.role || "");
+      } catch (err) {
+        console.error("Invalid token:", err);
+        setUserRole("");
+      }
+    }
+  
+    fetchCategories(); // 👈 ده هو اللي بيجيب الفئات ويعمل لها تحميل منتجات
+  }, [fetchCategories]);
 
   const fetchCategoryProducts = async (categoryName, page = 1) => {
     try {
@@ -32,15 +70,12 @@ const Products = () => {
         setCurrentPageByCategory((prev) => ({ ...prev, [categoryName]: page }));
       }
     } catch (err) {
-      setError("فشل تحميل المنتجات");
+      {error && Object.keys(productsByCategory).length === 0 && (
+        <p style={{ color: "red" }}>{error}</p>
+      )}
+      
     }
   };
-
-  useEffect(() => {
-    categoryOrder.forEach((category) => {
-      fetchCategoryProducts(category);
-    });
-  }, []);
 
   const toggleForm = (categoryName) => {
     setShowFormByCategory((prev) => ({
@@ -51,40 +86,33 @@ const Products = () => {
 
   const handleAddProduct = async (categoryName) => {
     const product = newProductByCategory[categoryName];
-    if (!product?.name || !product?.price) {
-      alert("يرجى إدخال اسم وسعر المنتج");
+    if (!product?.name || !product?.price || !product?.image) {
+      alert("يرجى إدخال اسم وسعر وصورة المنتج");
       return;
     }
   
+    const formData = new FormData();
+    formData.append("name", product.name);
+    formData.append("price", product.price);
+    formData.append("category", categoryName);
+    formData.append("image", product.image);
+  
     try {
-      await axios.post(
-        "http://localhost:9000/api/v2/products",
-        {
-          name: product.name,
-          price: product.price,
-          category: categoryName,
+      await axios.post("http://localhost:9000/api/v2/products", formData, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "multipart/form-data",
         },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      });
   
       fetchCategoryProducts(categoryName, currentPageByCategory[categoryName] || 1);
       setShowFormByCategory((prev) => ({ ...prev, [categoryName]: false }));
       setNewProductByCategory((prev) => ({ ...prev, [categoryName]: {} }));
-    }  catch (err) {
+    } catch (err) {
       console.error("تفاصيل الخطأ:", err.response);
-    
-      if (err.response?.data?.message) {
-        alert("❌ " + err.response.data.message); // الرسالة من backend
-      } else {
-        alert("حدث خطأ أثناء الإضافة");
-      }
+      alert("❌ حدث خطأ أثناء الإضافة");
     }
   };
-
 
   const handleNextPage = (category) => {
     const currentPage = currentPageByCategory[category] || 1;
@@ -112,11 +140,11 @@ const Products = () => {
         },
       });
       fetchCategoryProducts(category, currentPageByCategory[category]);
-    }  catch (err) {
-      console.error("تفاصيل الخطأ:", err.response?.data); // ✅ مهم جدا للمراقبة
-    
+    } catch (err) {
+      console.error("تفاصيل الخطأ:", err.response?.data);
+
       if (err.response?.status === 403) {
-        alert("⛔ " + err.response.data.message);  // ✅ ده اللي هيعرض "ليس لديك صلاحية"
+        alert("⛔ " + err.response.data.message);
       } else {
         alert("❌ فشل حذف المنتج");
       }
@@ -133,15 +161,18 @@ const Products = () => {
             <h3 className="text-xl font-semibold border-b border-gray-300 pb-1">
               {categoryName}
             </h3>
-            <button
-              onClick={() => toggleForm(categoryName)}
-              className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
-            >
-              ➕ إضافة منتج
-            </button>
+
+            {(userRole === "manager" || userRole === "admin") && (
+  <button
+    onClick={() => toggleForm(categoryName)}
+    className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+  >
+    ➕ إضافة منتج
+  </button>
+)}
           </div>
 
-          {showFormByCategory[categoryName] && (
+          {showFormByCategory[categoryName] && (userRole === "manager" || userRole === "admin") && (
             <div className="bg-gray-100 p-4 rounded mb-4">
               <input
                 type="text"
@@ -173,6 +204,20 @@ const Products = () => {
                 }
                 className="border px-2 py-1 rounded w-full mb-2"
               />
+              <input
+  type="file"
+  accept="image/*"
+  onChange={(e) =>
+    setNewProductByCategory((prev) => ({
+      ...prev,
+      [categoryName]: {
+        ...prev[categoryName],
+        image: e.target.files[0], // ← حفظ ملف الصورة
+      },
+    }))
+  }
+  className="border px-2 py-1 rounded w-full mb-2"
+/>
               <button
                 onClick={() => handleAddProduct(categoryName)}
                 className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
@@ -184,22 +229,37 @@ const Products = () => {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {(productsByCategory[categoryName] || []).map((product) => (
-              <div
-                key={product._id}
-                className="p-4 border rounded bg-white shadow text-sm"
+            <div
+            key={product._id}
+            className="p-4 border rounded bg-white shadow text-sm"
+          >
+            {/* ✅ عرض صورة المنتج */}
+            {product.image && (
+              <img
+                src={`http://localhost:9000/uploads/products/${product.image}`}
+                alt={product.name}
+                className="w-full h-28 object-cover mb-2 rounded"
+              />
+            )}
+          
+            <h4 className="font-bold text-base mb-1">{product.name}</h4>
+            <p>💰 السعر: {product.price} جنيه</p>
+          
+            {product.description && (
+              <p className="text-xs text-gray-600 mt-1">📝 {product.description}</p>
+            )}
+          
+            {/* ✅ زر الحذف حسب الصلاحية */}
+            {(userRole === "manager" || userRole === "admin") && (
+              <button
+                onClick={() => deleteProduct(product._id, categoryName)}
+                className="mt-2 bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600"
               >
-                <h4 className="font-bold text-base mb-1">{product.name}</h4>
-                <p>💰 السعر: {product.price} جنيه</p>
-                {product.description && (
-                  <p className="text-xs text-gray-600 mt-1">📝 {product.description}</p>
-                )}
-                <button
-                  onClick={() => deleteProduct(product._id, categoryName)}
-                  className="mt-2 bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600"
-                >
-                  حذف
-                </button>
-              </div>
+                حذف
+              </button>
+            )}
+          </div>
+          
             ))}
           </div>
 
