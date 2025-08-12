@@ -1,0 +1,40 @@
+/* شكل الفاتورة العادي في الصفحة */
+.invoice-container {
+  background: #fff;
+  border: 1px solid #ddd;
+  padding: 20px;
+}
+.invoice-title {
+  text-align: center;
+}
+.invoice-table {
+  border-collapse: collapse;
+}
+.invoice-table th,
+.invoice-table td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: center;
+}
+.print-button-container {
+  text-align: center;
+}
+
+
+@media print {
+  body * {
+    visibility: hidden; /* اخفاء كل حاجة */
+  }
+  .invoice-container, .invoice-container * {
+    visibility: visible; /* إظهار الفاتورة فقط */
+  }
+  .invoice-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  .print-button-container {
+    display: none; /* اخفاء زر الطباعة في الورقة */
+  }
+}
