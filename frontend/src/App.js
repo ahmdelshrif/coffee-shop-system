@@ -5,6 +5,7 @@ import Orders from "./pages/Orders";
 import Products from "./pages/Products";
 import Categories from "./pages/Categories";
 import CategoryProducts from "./pages/CategoryProducts";
+import WelcomeScreen from "./pages/WelcomeScreen";
 
 function App() {
   return (
@@ -12,7 +13,9 @@ function App() {
       <Routes>
 
         {/* صفحة تسجيل الدخول */}
-        <Route path="/" element={<Login />} />
+
+        <Route path="/" element={<WelcomeScreen />} />
+        <Route path="/login" element={<Login />} />
 
         {/* لوحة التحكم */}
         <Route path="/dashboard" element={<Dashboard />}>
