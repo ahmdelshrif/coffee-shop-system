@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-
-
+import { ThreeDot } from 'react-loading-indicators';
+import Swal from 'sweetalert2'
 
 const Products = () => {
   const [categoryOrder, setCategoryOrder] = useState([]);
@@ -15,6 +15,8 @@ const Products = () => {
   const [newProductByCategory, setNewProductByCategory] = useState({});
   const [userRole, setUserRole] = useState("");
   const navigate = useNavigate();
+    const [loading, setLoading] = useState(true);
+    const [quantities, setQuantities] = useState({});
 
   const limitPerPage = 4;
   const fetchCategories = async () => {
@@ -74,7 +76,9 @@ const Products = () => {
         <p style={{ color: "red" }}>{error}</p>
       )}
       
-    }
+    }finally {
+            setLoading(false); 
+        }
   };
 
   const toggleForm = (categoryName) => {
@@ -150,12 +154,45 @@ const Products = () => {
       }
     }
   };
+const addToOrder = (product, qty) => {
+  let currentOrder = JSON.parse(localStorage.getItem("order")) || [];
 
+  const existingItemIndex = currentOrder.findIndex(item => item._id === product._id);
+  if (existingItemIndex !== -1) {
+    currentOrder[existingItemIndex].quantity += qty;
+  } else {
+    currentOrder.push({
+      ...product,
+      quantity: qty,
+      date: new Date().toLocaleString(),
+    });
+  }
+
+  localStorage.setItem("order", JSON.stringify(currentOrder));
+
+Swal.fire({
+  toast: true,
+  position: 'top-end',
+  icon: 'success',
+  title: '✅ تم إضافة المنتج للفاتورة',
+  showConfirmButton: false,
+  timer: 2000,
+  timerProgressBar: true
+})  };
   return (
     <div className="p-4 max-w-6xl mx-auto">
       <h2 className="text-2xl font-bold mb-6">📦 المنتجات حسب الفئة</h2>
-
-      {categoryOrder.map((categoryName) => (
+{
+  loading ? (  <div className="flex justify-center items-center min-h-screen ">
+    <ThreeDot
+      variant="pulsate"
+      color="#32cd32"
+      size="medium"
+      text=""
+      textColor=""
+    />
+  </div> ) :(
+                   categoryOrder.map((categoryName) => (
         <div key={categoryName} className="mb-10">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-xl font-semibold border-b border-gray-300 pb-1">
@@ -250,14 +287,36 @@ const Products = () => {
             )}
           
             {/* ✅ زر الحذف حسب الصلاحية */}
+         <div className="flex gap-2 mt-2">
             {(userRole === "manager" || userRole === "admin") && (
               <button
-                onClick={() => deleteProduct(product._id, categoryName)}
-                className="mt-2 bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600"
+                onClick={() => deleteProduct(product._id)}
+                className="bg-red-500 text-white px-2 py-1 rounded text-sm hover:bg-red-600"
               >
                 حذف
               </button>
             )}
+<input
+  type="number"
+  min="1"
+  value={quantities[product._id] || 1}
+  onChange={(e) => {
+    const value = parseInt(e.target.value) || 1;
+    setQuantities((prev) => ({
+      ...prev,
+      [product._id]: value,
+    }));
+  }}
+  className="border px-2 py-1 rounded  mb-2 text-center w-[80px]"
+/>
+
+<button
+  onClick={() => addToOrder(product, quantities[product._id] || 1)}
+  className="bg-blue-500 text-white px-2 py-1 rounded text-sm hover:bg-blue-600"
+>
+  إضافة للأوردر
+</button>
+          </div>
           </div>
           
             ))}
@@ -287,8 +346,11 @@ const Products = () => {
             </button>
           </div>
         </div>
-      ))}
+      ))
 
+                )
+}
+     
       {error && <p className="text-red-500 mt-4">{error}</p>}
     </div>
   );
