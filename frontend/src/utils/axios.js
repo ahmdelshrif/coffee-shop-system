@@ -7,5 +7,12 @@ const axiosInstance = axios.create({
   },
 });
 
+axios.get("/api/v1/categories", {
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem("token")}`
+  }
+})
+
+
 
 export default axiosInstance;
