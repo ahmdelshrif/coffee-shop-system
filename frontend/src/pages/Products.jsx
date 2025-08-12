@@ -307,7 +307,7 @@ Swal.fire({
       [product._id]: value,
     }));
   }}
-  className="border px-2 py-1 rounded mb-2 text-center w-[80px]"
+  className="border px-2 py-1 rounded mb-2 text-center w-[60px]"
 />
 
 <button
