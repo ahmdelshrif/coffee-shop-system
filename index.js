@@ -1,16 +1,16 @@
-const express =require("express")
-const dotenv=require("dotenv")
-const {dbconnection}=require("./conifg/dbconnection")
-const routerauth=require("./router/auth.router")
-const routeruer=require("./router/user.router")
-const routercategory=require("./router/category.router")
-const routerproducts=require("./router/products.router")
-const routerorder=require("./router/order.router")
+const express = require("express")
+const dotenv = require("dotenv")
+const { dbconnection } = require("./conifg/dbconnection")
+const routerauth = require("./router/auth.router")
+const routeruer = require("./router/user.router")
+const routercategory = require("./router/category.router")
+const routerproducts = require("./router/products.router")
+const routerorder = require("./router/order.router")
 // const routerreport=require("./router/reports.router")
-dotenv.config({path:"conf.env"})
-const {globalEorrs}=require("./middelweres/Erorr")
-const Report=require("./model/reports.model")
-const Product=require("./model/products.model")
+dotenv.config({ path: "conf.env" })
+const { globalEorrs } = require("./middelweres/Erorr")
+const Report = require("./model/reports.model")
+const Product = require("./model/products.model")
 // const cron = require("node-cron");
 // const ReportMonth=require("./model/report.model.month")
 // const routerReportMonth=require("./router/report.month")
@@ -21,22 +21,29 @@ const cors = require("cors");
 //connection
 dbconnection()
 
+const path = require('path');
 
-const app=express()
+
+const app = express()
 app.use(cors()); // ✅ هنا تمام
-app.use(express.json())
-app.use('/uploads', express.static('uploads'));
+app.use(express.json());
+app.use('/uploads', (req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  next();
+}, express.static(path.join(__dirname, 'uploads')));
+
+
 //router
 
-app.use("/api/v2/category",routercategory)
-app.use("/api/v2/products",routerproducts)
-app.use("/api/v2/auth",routerauth)
-app.use("/api/v2/user",routeruer)
-app.use("/api/v2/order",routerorder)
+app.use("/api/v2/category", routercategory)
+app.use("/api/v2/products", routerproducts)
+app.use("/api/v2/auth", routerauth)
+app.use("/api/v2/user", routeruer)
+app.use("/api/v2/order", routerorder)
 // app.use("/api/v2/reports",routerreport)
 // app.use("/api/v2/reportmonthly",routerReportMonth)
 // app.use("/api/v2/Invoice",routerInvoice)
-  
+
 //globalEorrs error handling middlewere for express
 app.use(globalEorrs)
 
@@ -44,7 +51,7 @@ app.use(globalEorrs)
 const PORT = process.env.PORT || 9000;
 const server = app.listen(PORT, () => {
   console.log(`App running running on port ${PORT}`);
-  
+
 })
 
 // cron.schedule('0 0 * * * *', async () => {
@@ -94,10 +101,10 @@ const server = app.listen(PORT, () => {
 // })
 
 process.on('unhandledRejection', (err) => {
-    console.error(`UnhandledRejection Errors: ${err.name} | ${err.message}`);
-    server.close(() => {
-      console.error(`Shutting down....`);
-      process.exit(1);
-    })
-  
+  console.error(`UnhandledRejection Errors: ${err.name} | ${err.message}`);
+  server.close(() => {
+    console.error(`Shutting down....`);
+    process.exit(1);
   })
+
+})
