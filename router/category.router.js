@@ -17,7 +17,6 @@ router.route("/").post(protect, allowTO("manager", "admin")
     .get(getCategories);
 router.get('/by-category/:id', protect, getProductsByCategoryId);
 
-
 router.route("/:id").get(SpecifiedCategory_catchError, getSpecifiedCategory)
     .put(protect, allowTO("manager", "admin"), uploadCategoryImages, resizeImage,
         updateCategory_catchError, updateCategory)
