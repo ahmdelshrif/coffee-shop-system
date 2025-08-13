@@ -19,6 +19,32 @@
 .print-button-container {
   text-align: center;
 }
+.swal2-confirm-btn {
+  background-color: #d33 !important;
+  color: white !important;
+  padding: 8px 16px;
+  border-radius: 5px;
+  font-weight: bold;
+  border: none;
+  margin-right: 30px ;
+}
+
+.swal2-cancel-btn {
+  background-color: #3085d6 !important;
+  color: white !important;
+  padding: 8px 16px;
+  border-radius: 5px;
+  font-weight: bold;
+  border: none;
+}
+
+.swal2-confirm-btn:hover {
+  opacity: 0.9;
+}
+
+.swal2-cancel-btn:hover {
+  opacity: 0.9;
+}
 
 
 @media print {
