@@ -1,15 +1,10 @@
-class ApiErorr extends Error{
-
- 
-constructor(message,statusCode)
-{
-   super(message);
-   // eslint-disable-next-line no-unused-expressions, no-sequences
-   this.statusCode= statusCode ,
-   this.status=`${statusCode}`.startsWith(4)? "fild":"error",
-   this.isOprerational=true
-
-}
+class ApiError extends Error {
+   constructor(message, statusCode) {
+      super(message);
+      this.statusCode = statusCode;
+      this.status = `${statusCode}`.startsWith("4") ? "fail" : "error"; // صححت الفاصلة والنص
+      this.isOperational = true; // صححت الاسم ليكون isOperational
+   }
 }
 
-module.exports=ApiErorr
+module.exports = ApiError;
