@@ -1,6 +1,6 @@
 const express = require("express")
 const dotenv = require("dotenv")
-const { dbconnection } = require("./conifg/dbconnection")
+const { dbconnection } = require("./config/dbconnection")
 const routerauth = require("./router/auth.router")
 const routeruer = require("./router/user.router")
 const routercategory = require("./router/category.router")
@@ -21,18 +21,11 @@ const cors = require("cors");
 //connection
 dbconnection()
 
-const path = require('path');
-
 
 const app = express()
 app.use(cors()); // ✅ هنا تمام
-app.use(express.json());
-app.use('/uploads', (req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  next();
-}, express.static(path.join(__dirname, 'uploads')));
-
-
+app.use(express.json())
+app.use('/uploads', express.static('uploads'));
 //router
 
 app.use("/api/v2/category", routercategory)
