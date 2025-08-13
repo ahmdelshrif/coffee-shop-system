@@ -1,99 +1,88 @@
-const synchandler=require("express-async-handler")
-const products=require("../model/products.model")
-const dotenv=require("dotenv")
-dotenv.config({path:"conf.env"})
-const ApiErorr=require("../utils/apiError")
-const uploadSingleImage =require("../middelweres/uploadStringimg")
-const sharp=require("sharp")
-const { v4: uuidv4 } = require('uuid');
-const { select } = require("async")
-const categories=require("../model/category.model")
+const synchandler = require("express-async-handler");
+const products = require("../model/products.model");  // صححت اسم المتغير ليطابق الموديل
+const dotenv = require("dotenv");
+dotenv.config({ path: "conf.env" });
+const ApiErorr = require("../utils/apiError");
+const uploadSingleImage = require("../middelweres/uploadStringimg");
+const sharp = require("sharp");
+const { v4: uuidv4 } = require("uuid");
+const categories = require("../model/category.model");
 
-//رفع صوره لل product
+// رفع صورة للمنتج
 exports.uploadproductsImages = uploadSingleImage.uploadSingleImage('image');
 
-//تعديل للصوره وحفظها 
+// تعديل الصورة وحفظها
 exports.resizeImage = synchandler(async (req, res, next) => {
   const filename = `product-${uuidv4()}-${Date.now()}.jpeg`;
-  if(req.file){
+  if (req.file) {
     await sharp(req.file.buffer)
-    .resize(600, 600)
-    .toFormat('jpeg')
-    .jpeg({ quality: 95 })
-    .toFile(`uploads/products/${filename}`);
-  // Save image into our db 
-req.body.image = filename;
-
+      .resize(600, 600)
+      .toFormat('jpeg')
+      .jpeg({ quality: 95 })
+      .toFile(`uploads/products/${filename}`);
+    req.body.image = filename;
   }
-  next()
+  next();
 });
 
-// انشاء Product
+// إنشاء منتج
 exports.creatProduct = synchandler(async (req, res, next) => {
-  // 1. نبحث عن الفئة باستخدام الاسم المُرسل
-  const category = await categories.findOne({ name: req.body.category });
-console.log(category)
-  // 2. لو مش لاقيها نرجع خطأ
+  // افتراضياً نقوم بالبحث باستخدام ID الفئة وليس الاسم
+  // تأكد أن الفرونت اند يرسل category كـ id
+  const category = await categories.findById(req.body.category);
   if (!category) {
-    return next(new ApiErorr(`لا يوجد صنف بالاسم: ${req.body.category}`, 404));
+    return next(new ApiErorr(`لا يوجد صنف بالمعرف: ${req.body.category}`, 404));
   }
 
-  // 3. نستخدم ID الفئة الحقيقي في الإنشاء
   const product = await products.create({
     name: req.body.name,
     description: req.body.description,
     image: req.body.image,
     price: req.body.price,
-    category: category._id, // <-- ربط فعلي بالـ ObjectId
-    createdAt: Date.now()
+    category: category._id,
+    createdAt: Date.now(),
   });
 
   if (!product) {
-    return next(new ApiErorr(`عمليه الاضافه غير ناجحه`, 403));
+    return next(new ApiErorr(`عملية الإضافة غير ناجحة`, 403));
   }
 
   res.status(200).json({ Data: product });
 });
 
+// حذف منتج
+exports.deleteProduct = synchandler(async (req, res, next) => {
+  const product = await products.findByIdAndDelete(req.params.id);
 
-// تعديل Product
-// exports.updateProduct=(synchandler(async(req,res,next)=>{
-//     const product=await products.findByIdAndUpdate(req.params.id, req.body)
-//     if(!product)
-//     {
-//         return next(new ApiErorr(`لا يوجد منتج لهذا ال id : ${id}`,403))
-//     }
-//     res.status(200).json({data:product})
-// }))
+  if (!product) {
+    return next(new ApiErorr("❌ المنتج غير موجود", 404));
+  }
 
-// حذف Product
-exports.deleteProduct=(synchandler(async(req,res,next)=>{
-    const product=await products.findByIdAndDelete(req.params.id)
-    if (!product) {
-        return next(new ApiErorr(`لا يوجد منتج لهذا ال id : ${req.params.id}`, 404));
-    }
+  res.status(200).json({
+    status: "success",
+    message: "✅ تم حذف المنتج بنجاح",
+    Data: product,
+  });
+});
 
-    res.status(200).json({data:product})
-}))
+// عرض منتج معين
+exports.getSpecifiedProduct = synchandler(async (req, res, next) => {
+  const product = await products.findById(req.params.id).select("-__v -createdAt");
+  if (!product) {
+    return next(new ApiErorr(`لا يوجد منتج لهذا المعرف: ${req.params.id}`, 404));
+  }
+  res.status(200).json({ Data: product });
+});
 
-
-// عرض منتج معين 
-exports.getSpecifiedProduct=(synchandler(async(req,res,next)=>{
-    const product=await products.findById(req.params.id).select("-_id -__v -creatAt")
-    if (!product) {
-        return next(new ApiErorr(`لا يوجد منتج لهذا ال id : ${req.params.id}`, 404));
-    }
-    res.status(200).json({data:product})
-}))
-
+// جلب المنتجات مع فلترة (حسب categoryId، اسم، أو كلمة مفتاحية)
 exports.getProducts = synchandler(async (req, res, next) => {
-  const page = req.query.page * 1 || 1;
-  const limit = req.query.limit * 1 || 5;
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 4; // ✅ الحد الافتراضي 4 منتجات
   const skip = (page - 1) * limit;
 
   let QueryString = { ...req.query };
   const exclude = ["page", "limit", "fields", "sort", "keyword", "categoryName"];
-  exclude.map((field) => delete QueryString[field]);
+  exclude.forEach((field) => delete QueryString[field]);
 
   if (req.query.categoryName) {
     const categoryDoc = await categories.findOne({
@@ -132,14 +121,11 @@ exports.getProducts = synchandler(async (req, res, next) => {
 
   const product = await mangoosequry;
 
-  // ✅ لا ترجع خطأ لو مفيش منتجات، فقط أرسلها فاضية
   res.status(200).json({
-    Date: product,
+    Data: product,
     Resulte: product.length,
     totalCount,
     page,
     totalPages: Math.ceil(totalCount / limit),
   });
 });
-
-  
